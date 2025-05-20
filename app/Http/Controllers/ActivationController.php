@@ -4,79 +4,86 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\SerialKey;
+use App\Models\Customer;
+use App\Models\Project;
 use Carbon\Carbon;
 
 class ActivationController extends Controller
 {
-    /**
-     * Validate the serial code and return the encrypted validation key.
-     */
     public function validateSerial(Request $request)
     {
-        // Validate input
         $request->validate([
             'serial_code' => 'required|string',
+            'email' => 'required|email',
+            'project_id' => 'required|string',
         ]);
 
-        // Find the serial key
-        $serialKey = SerialKey::where('serial_code', $request->serial_code)->first();
+        $customer = Customer::where('email', $request->email)->first();
+        if (!$customer) {
+            return response()->json(['message' => 'Customer not found'], 404);
+        }
 
-        // Check if the key exists
+        // Lookup by project_id (your custom field), not id (PK)
+        $project = Project::where('project_id', $request->project_id)->first();
+        if (!$project) {
+            return response()->json(['message' => 'Project not found'], 404);
+        }
+
+        // Now use the internal PK `id` from the matched project
+        $serialKey = SerialKey::where('serial_code', $request->serial_code)
+            ->where('project_id', $project->id)
+            ->where('customer_id', $customer->id)
+            ->first();
+
         if (!$serialKey) {
             return response()->json(['message' => 'Serial code not found'], 404);
         }
 
-        // Check if the key has already been used
         if ($serialKey->is_used) {
             return response()->json(['message' => 'Serial code has already been used'], 400);
         }
 
-        // Set activation start and expiration date
-        $startAt = Carbon::today();
-        $expiresAt = $startAt->copy()->addYears($serialKey->duration);
+        $startAt = Carbon::now()->startOfDay();
+        $expiresAt = $startAt->copy()->addMonths($serialKey->duration);
 
-        // Update the serial key
         $serialKey->update([
-            'is_used' => true,
             'start_at' => $startAt,
             'expires_at' => $expiresAt,
-            'updated_at' => Carbon::now(),
+            'is_used' => true,
         ]);
 
-        // Prepare data to be encrypted
         $plainData = [
             'serial_code' => $serialKey->serial_code,
+            'email' => $request->email,
+            'project_id' => $request->project_id, // still return user-sent value
             'start_at' => $startAt->toDateString(),
             'expires_at' => $expiresAt->toDateString(),
         ];
 
-        // Encrypt data
-        $encryptedData = $this->encryptResponse($plainData);
+        $encryptedData = $this->encryptOnly($plainData);
 
-        // Final response
         return response()->json([
             'serial_code' => $serialKey->serial_code,
             'start_at' => $startAt->toDateString(),
             'expires_at' => $expiresAt->toDateString(),
-            'encryptedResponse' => $encryptedData
-        ], 200);
+            'encryptedResponse' => $encryptedData        
+        ]);
     }
 
-    private function encryptResponse($data, $status = 200)
+    private function encryptOnly($data)
     {
-        // Load public key
-        $publicKeyPath = storage_path('app/keys/public_key.pem'); // Ensure this path exists
+        $publicKeyPath = storage_path('app/keys/public_key.pem');
+
         if (!file_exists($publicKeyPath)) {
-            return response()->json(['message' => 'Public key not found'], 500);
+            return 'Public key not found';
         }
 
         $publicKey = file_get_contents($publicKeyPath);
 
-        // Encrypt data
         if (!openssl_public_encrypt(json_encode($data), $encrypted, $publicKey)) {
-            return response()->json(['message' => 'Encryption failed'], 500);
+            return 'Encryption failed';
         }
 
-        return response()->json(['data' => base64_encode($encrypted)], $status);
+        return base64_encode($encrypted);
     }
 }

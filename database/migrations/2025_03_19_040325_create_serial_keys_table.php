@@ -11,8 +11,6 @@ return new class extends Migration {
             $table->string('serial_code')->unique();
             $table->boolean('is_used')->default(false);
             $table->string('validation_key')->nullable();
-            $table->integer('duration')->default(1); // Duration in years
-            $table->date('start_at')->nullable();
             $table->date('expires_at')->nullable();
             $table->timestamps();
         });
