@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\ActivationController;
 use App\Http\Controllers\ActivationUpdateController;
+use App\Http\Controllers\ActivationRegisterController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 
@@ -11,4 +12,5 @@ Route::middleware('auth:sanctum')->get('/user', [AuthController::class, 'user'])
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/validate-serial', [ActivationController::class, 'validateSerial']);
 Route::post('/validate-serial-update', [ActivationUpdateController::class, 'validateSerial']);
+Route::post('/validate-serial-register', [ActivationRegisterController::class, 'validateSerial']);
 
