@@ -36,8 +36,9 @@
   <form method="POST" action="{{ route('login.post') }}">
     @csrf
 
-    <img class="mb-4" src="{{ asset('bootstrap/assets/brand/bootstrap-logo.svg') }}" alt="" width="72" height="57">
-    <h1 class="h3 mb-3 fw-normal">Please Sign in</h1>
+    <img class="mb-4" src="{{ asset('bootstrap/assets/brand/lock-svg.svg') }}" alt="" width="72" height="57">
+    <h1 class="h3 mb-3 fw-normal">License Key Generator</h1>
+    <p class="h6 mb-3 fw-normal">Please sign in to continue</p>
 
     <div class="form-floating">
       <input type="email" class="form-control" id="email" name="email" placeholder="name@example.com" required>

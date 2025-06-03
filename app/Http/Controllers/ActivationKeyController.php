@@ -10,11 +10,18 @@ use Illuminate\Support\Str;
 
 class ActivationKeyController extends Controller
 {
+
+    public function getProjects($customer_id)
+    {
+        $projects = Project::where('customer_id', $customer_id)->get();
+        return response()->json($projects);
+    }
+
+
     public function showForm()
     {
         return view('pages.generate-key', [
             'customers' => Customer::all(),
-            'projects' => Project::all(),
         ]);
     }
 

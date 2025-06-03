@@ -1,5 +1,7 @@
 @extends('layouts.app')
 
+@section('title', 'Generate Serial Key')
+
 @section('content')
 <style>
     .centered-container {
@@ -40,7 +42,7 @@
             </select>
 
             <label for="customer_id">Customer</label>
-            <select name="customer_id" class="form-control" required>
+            <select name="customer_id" id="customer_id" class="form-control" required>
                 <option value="">Select Customer</option>
                 @foreach($customers as $customer)
                     <option value="{{ $customer->id }}">{{ $customer->name }}</option>
@@ -48,11 +50,8 @@
             </select>
 
             <label for="project_id">Project</label>
-            <select name="project_id" class="form-control" required>
+            <select name="project_id" id="project_id" class="form-control" required>
                 <option value="">Select Project</option>
-                @foreach($projects as $project)
-                    <option value="{{ $project->id }}">{{ $project->id }} - {{ $project->name }}</option>
-                @endforeach
             </select>
 
             <button type="submit" class="btn btn-primary btn-user btn-block">Generate</button>
@@ -75,4 +74,28 @@
         @endif
     </div>
 {{-- </div> --}}
+
+<script>
+    document.getElementById('customer_id').addEventListener('change', function () {
+        const customerId = this.value;
+        const projectSelect = document.getElementById('project_id');
+
+        if (!customerId) {
+            projectSelect.innerHTML = '<option value="">Select Project</option>';
+            return;
+        }
+
+        fetch(`/get-projects/${customerId}`)
+            .then(response => response.json())
+            .then(data => {
+                projectSelect.innerHTML = '<option value="">Select Project</option>';
+                data.forEach(project => {
+                    projectSelect.innerHTML += `<option value="${project.id}">${project.name}</option>`;
+                });
+            })
+            .catch(error => {
+                console.error('Error fetching projects:', error);
+            });
+    });
+</script>
 @endsection

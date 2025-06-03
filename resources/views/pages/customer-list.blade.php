@@ -29,7 +29,8 @@
     @if($customers->isEmpty())
         <div class="alert alert-info">No customers found.</div>
     @else
-        <table class="table table-bordered">
+    <div class="table-responsive">
+        <table class="table table-bordered" id="dataTable">
             <thead class="thead-light">
                 <tr>
                     <th>No</th>
@@ -65,6 +66,7 @@
                 @endforeach
             </tbody>
         </table>
+    </div>
     @endif
 </div>
 @endsection

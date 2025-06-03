@@ -65,6 +65,9 @@ Route::middleware('auth')->group(function () {
     // Show activation key list
     Route::get('/serial-keys', [SerialKeyController::class, 'list'])->name('serial.key.list');
 
+    Route::get('/get-projects/{customer_id}', [ActivationKeyController::class, 'getProjects']);
+
+
     // Show activation key generation form
     Route::get('/generate-key', [ActivationKeyController::class, 'showForm'])->name('activation.form');
 
